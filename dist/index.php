@@ -17,9 +17,7 @@ if( isAuthRequired() ) {
 
 <body>
 
-<div id='appContainer' style='margin:0; padding:0; box-sizing:border-box; width:100vw; height:100vh;'></div>
-
-<script id="bundle" src="bundle.js" data-username="<? echo($userName); ?>"  data-appcontainer="appContainer" charset="utf-8"></script>
+<script id="bundle" src="bundle.js" data-username="<? echo($userName); ?>" charset="utf-8"></script>
 
 </body>
 

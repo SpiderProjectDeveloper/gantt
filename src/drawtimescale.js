@@ -133,8 +133,8 @@ export function drawTimeScale() {
 	}
 
 	// Adjusting to the beginning of day
-	minDT = new Date( minDT.getUTCFullYear(), minDT.getUTCMonth(), minDT.getUTCDate(), 0, 0, 0, 0 );
-	maxDT = new Date( maxDT.getUTCFullYear(), maxDT.getUTCMonth(), maxDT.getUTCDate(), 0, 0, 0, 0 );
+	minDT = new Date( Date.UTC( minDT.getUTCFullYear(), minDT.getUTCMonth(), minDT.getUTCDate(), 0, 0, 0, 0 ) );
+	maxDT = new Date( Date.UTC( maxDT.getUTCFullYear(), maxDT.getUTCMonth(), maxDT.getUTCDate(), 0, 0, 0, 0 ) );
 
 	if( displayDays && rowNumber > 0 ) {
 		textProperties.fontSize = daysFontSize;
@@ -209,9 +209,9 @@ function drawTimeScaleYears( rectProperties, textProperties, displayYears, minY,
 			let yearText = createText( minY, _globals.timeSVGWidth/2, bottom-3, textProperties );
 			_globals.timeSVG.appendChild(yearText);
 		} else {
-			let startOfYear = new Date(y,0,1,0,0,0,0);
+			let startOfYear = new Date( Date.UTC(y,0,1,0,0,0,0) );
 			let startOfYearInSeconds = startOfYear.getTime() / 1000;
-			let endOfYear = new Date(y,11,31,23,59,59,999);
+			let endOfYear = new Date( Date.UTC(y,11,31,23,59,59,999) );
 			let endOfYearInSeconds = endOfYear.getTime() / 1000;
 			let yearStartX = timeToScreen(startOfYearInSeconds, false);
 			let yearEndX = timeToScreen(endOfYearInSeconds, false);
@@ -244,9 +244,9 @@ function drawTimeScaleMonths( rectProperties, textProperties, displayMonths, min
 		let maxM = ( y == maxY ) ? maxDT.getUTCMonth() : 11;
 		let mNames = _texts[_globals.lang]['monthNames']
 		for( let m = minM ; m <= maxM ; m++ ) {
-			let startOfMonth = new Date(y,m,1,0,0,0,0);
+			let startOfMonth = new Date( Date.UTC(y,m,1,0,0,0,0) );
 			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;
-			let endOfMonth = new Date(y,m+1,0,23,59,59,999);
+			let endOfMonth = new Date( Date.UTC(y,m+1,0,23,59,59,999) );
 			let endOfMonthInSeconds = endOfMonth.getTime() / 1000;
 			let monthStartX = timeToScreen(startOfMonthInSeconds, false);
 			let monthEndX = timeToScreen(endOfMonthInSeconds, false);
@@ -286,7 +286,7 @@ function drawTimeScaleWeeks( rectProperties, textProperties, minDT, maxDT ) {
 	if( firstDay > 1 ) { // If not monday...
 		startDT = new Date( minDT.getTime() - numSecondsInDay*1000*(firstDay-1) ); // ... making it Monday
 	} else {
-		startDT = new Date( minDT.getUTCFullYear(), minDT.getUTCMonth(), minDT.getUTCDate(), 0, 0, 0, 0 );
+		startDT = new Date( Date.UTC( minDT.getUTCFullYear(), minDT.getUTCMonth(), minDT.getUTCDate(), 0, 0, 0, 0 ) );
 	}
 
 	let startOfWeekInSeconds = startDT.getTime() / 1000;
@@ -343,8 +343,8 @@ function drawTimeScaleHours( rectProperties, textProperties, displayHours, minDT
 	let bottom = top + height;
 	let numSecondsInHour = 60 * 60;
 
-	let startDT = new Date( minDT.getUTCFullYear(), minDT.getUTCMonth(), minDT.getUTCDate(), minDT.getUTCHours(), 0, 0, 0 );
-	let endDT = new Date( maxDT.getUTCFullYear(), maxDT.getUTCMonth(), maxDT.getUTCDate(), maxDT.getUTCHours(), 0, 0, 0 );
+	let startDT = new Date( Date.UTC( minDT.getUTCFullYear(), minDT.getUTCMonth(), minDT.getUTCDate(), minDT.getUTCHours(), 0, 0, 0 ) );
+	let endDT = new Date( Date.UTC( maxDT.getUTCFullYear(), maxDT.getUTCMonth(), maxDT.getUTCDate(), maxDT.getUTCHours(), 0, 0, 0 ) );
 
 	let currentHour = startDT.getUTCHours();
 	let startOfHourInSeconds = startDT.getTime() / 1000;

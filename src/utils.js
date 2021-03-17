@@ -281,7 +281,7 @@ export function initLinearGradient( stops, name ) {
 export function getWeekNumber(d) {
 	d = new Date( Date.UTC( d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() ) );
 	d.setUTCDate( d.getUTCDate() + 4 - (d.getUTCDay() || 7) );
-	var startOfYear = new Date( Date.UTC( d.getUTCFullYear(), 0,1 ) );
+	var startOfYear = new Date( Date.UTC( d.getUTCFullYear(), 0, 1 ) );
 	var weekNumber = Math.ceil( ( ( (d - startOfYear) / 86400000 ) + 1 ) / 7 );
 	return weekNumber;
 }
@@ -311,7 +311,7 @@ export function parseDate( dateString ) {
 			}
 			hr = parsedFull[4];
 			mn = parsedFull[5];
-			date = new Date(y, m-1, d, hr, mn, 0, 0);
+			date = new Date( Date.UTC(y, m-1, d, hr, mn, 0, 0) );
 		}
 	} else {
 		let parsedShort = dateString.match( /([0-9]+)[\.\/\-\:]([0-9]+)[\.\/\-\:]([0-9]+)/ );
@@ -329,7 +329,7 @@ export function parseDate( dateString ) {
 				}
 				hr = 0;
 				mn = 0;
-				date = new Date(y, m-1, d, hr, mn, 0, 0, 0, 0);
+				date = new Date( Date.UTC(y, m-1, d, hr, mn, 0, 0, 0, 0) );
 			}
 		}
 	}
@@ -339,58 +339,7 @@ export function parseDate( dateString ) {
 	let timeInSeconds = date.getTime();
 	return( { 'date':date, 'timeInSeconds':timeInSeconds/1000 } ); 
 }
-
-
-export function parseJSDate( dateString ) {
-	if( typeof(dateString) === 'undefined' ) {
-		return null;
-	}
-	if( dateString == null ) {
-		return null;
-	}
-	let date = null;
-	let parsedFull = dateString.match( /([0-9]+)[\.\-\/\:]([0-9]+)[\.\-\/\:]([0-9]+)[ T]+([0-9]+)[\:\.\-\/]([0-9]+)/ );
-	if( parsedFull !== null ) {
-		if( parsedFull.length == 6 ) {
-			date = new Date(parsedFull[1], parsedFull[2]-1, parsedFull[3], parsedFull[4], parsedFull[5], 0, 0);
-		}
-	} else {
-		let parsedShort = dateString.match( /([0-9]+)[\.\-\/\:]([0-9]+)[\.\-\/\:]([0-9]+)/ );
-		if( parsedShort !== null ) {
-			if( parsedShort.length == 4 ) {
-				date = new Date(parsedShort[1], parsedShort[2]-1, parsedShort[3], 0, 0, 0, 0);
-			}
-		}
-	}
-	if( date === null ) {
-		return null;
-	}
-	let timeInSeconds = date.getTime();
-	return( { 'date':date, 'timeInSeconds':timeInSeconds/1000 } ); 
-}
-
-
-export function dateIntoJSDateString( date ) {
-	let year = date.getUTCFullYear(); 
-	let month = (date.getUTCMonth()+1);
-	if( month < 10 ) {
-		month = "0" + month;
-	}
-	let day = date.getUTCDate();
-	if( day < 10 ) {
-		day = "0" + day;
-	}
-	let hours = date.getUTCHours();
-	if( hours < 10 ) {
-		hours = "0" + hours;
-	}
-	let minutes = date.getUTCMinutes();
-	if( minutes < 10 ) {
-		minutes = "0" + minutes;
-	}
-	return( year + "-" + month + "-" + day + "T" + hours + ":" +  minutes + ":00" ); 
-}
-
+ 
 
 export function dateIntoSpiderDateString( date, dateOnly=false ) {
     let spiderDateString = null;

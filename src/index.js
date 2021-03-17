@@ -30,8 +30,8 @@ if( script ) {
 	let appContainerName = script.getAttribute('data-appcontainer');
 	if(appContainerName) { 
 		appContainer = document.getElementById(appContainerName);
-    }
-    userName = script.getAttribute('data-username');
+  }
+  userName = script.getAttribute('data-username');
 }
 if( appContainer ) {
 	appContainer.innerHTML = mainHTML;

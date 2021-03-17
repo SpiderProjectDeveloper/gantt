@@ -153,7 +153,7 @@ export function calendarInit( container, callBack, cellWidth, cellHeight ) {
 				_calendarContainer.removeChild(_calendar);
 				_calendar = null;
 				//container.style.display = 'none';
-				let date = new Date( y,m,d,hr,mn,0,0 );
+				let date = new Date( Date.UTC(y,m,d,hr,mn,0,0) );
 				_calendarCallBack( date );
 			});
 			day.appendChild( document.createTextNode(d) );
@@ -257,10 +257,10 @@ function calendarSetDate( year=null, month=null, day=null, hour=null, minute=nul
 }
 
 function calendarDisplay( year, month, day=null, hour=null, minute=null ) {
-	let lastDayOfMonthDate = new Date(parseInt(year), parseInt(month)+1, 0);
+	let lastDayOfMonthDate = new Date( Date.UTC( parseInt(year), parseInt(month)+1, 0) );
 	let numDaysInMonth = lastDayOfMonthDate.getUTCDate();
 
-	let firstDayInMonthDate = new Date( year, month, 1 );
+	let firstDayInMonthDate = new Date( Date.UTC(year, month, 1) );
 	let firstWeekDayOfMonth = firstDayInMonthDate.getUTCDay();
 	firstWeekDayOfMonth = (firstWeekDayOfMonth==0) ? 6 : firstWeekDayOfMonth-1;
 	let lastWeekDayOfMonth = lastDayOfMonthDate.getUTCDay();
