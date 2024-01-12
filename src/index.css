@@ -2,8 +2,11 @@
 	--header-height:40px;
 	--half-header-height:calc( var(--header-height) / 2 );
 	--two-fifth-header-height:calc( 2 * var(--header-height) / 5 );
-    --header-font-size:calc( 4 * var(--header-height) / 13 );
-    --menu-width: calc( var(--header-height) * 2 );
+	--header-font-size:calc( 4 * var(--header-height) / 13 );
+	--header-4sym-size:calc( 13 * var(--header-height) / 13 );
+	--menu-width: calc( var(--header-height) * 2 );
+	--clip-left-width: calc( var(--header-height) * 2 );
+	--menu-left: calc( var(--header-height) * 5 );
 	--toolbox-table-height:28px;
 	--toolbox-td-height:calc( var(--toolbox-table-height) - 2px );
 	--toolbox-font-size:calc( var(--toolbox-table-height) - 10px );
@@ -43,8 +46,18 @@ a { text-decoration:none; color:white; }
     background-image:linear-gradient(to right, rgb(120,120,120), rgb(20,20,20), rgb(120,120,120));
 }
 
+#toolboxClipLeftDiv {
+	position:absolute; left: var(--menu-width);
+	height:var(--header-height); max-height:var(--header-height); overflow:hidden; 
+	margin:0px; display:block; float:left; font-size:10px; 
+	text-align:left; color:#dfdfdf; 
+}
+
+#toolboxClipLeftDiv img { float:left; height:var(--toolbox-table-height); margin:4px 0px 0px 0px; padding: 1px; background-color: #dfdfdf; }
+#toolboxClipLeftDiv input { float:left; width: var(--header-4sym-size); height:var(--toolbox-table-height); margin:4px 0px 0px 0px; padding: 1px; background-color: white; }
+
 #projectDetails {
-    position:absolute; left: var(--menu-width);
+    position:absolute; left: var(--menu-left);
     height:var(--header-height); max-height:var(--header-height); overflow:hidden; 
     margin:0px; display:block; float:left; 
     text-align:left; color:#dfdfdf; 

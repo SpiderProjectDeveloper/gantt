@@ -3,7 +3,8 @@ import { _globals, _data } from './globals.js';
 import { _texts, _icons } from './texts.js';
 import { displayConfirmationBox } from './boxes.js';
 
-export  function lockData( locked=null, success_fn=null, error_fn=null ) {
+export  function lockData( locked=null, success_fn=null, error_fn=null ) 
+{
 	if( _globals.lockDataDisabled === null ) {
 		if( _data.noEditables ) {
 			_globals.lockDataDisabled = true;		// ... disabling this tool
@@ -53,10 +54,10 @@ export  function lockData( locked=null, success_fn=null, error_fn=null ) {
         			success_fn( statusData );
         		}
 			} else if( _globals.lockDataRequestReceived && _globals.lockDataProcessingRequest ) {
-				console.log( 'The site has been accessed but the file hasn\'t been found!' );
+				//console.log( 'The site has been accessed but the file hasn\'t been found!' );
 				error_fn( _texts[_globals.lang].statusErrorMessage );
 			} else {
-				console.log( 'Error occured!' );				
+				//console.log( 'Error occured!' );				
 				error_fn( _texts[_globals.lang].noConnectionWithServerMessage );
 			}
 			return;

@@ -5,7 +5,8 @@ import { _settings } from './settings.js';
 import { _globals, _data } from './globals.js';
 import { _texts, _icons } from './texts.js';
 import { setCookie, createRect, dateIntoSpiderDateString, spacesToPadNameAccordingToHierarchy, 
-    getElementPosition, moveElementInsideArrayOfObjects, digitsOnly } from './utils.js';
+	getElementPosition, moveElementInsideArrayOfObjects, 
+	formatNumberStringForTable, digitsOnly } from './utils.js';
 
 export function drawAll() {
 	drawTableHeader(true);
@@ -248,12 +249,19 @@ export function initDataRefSettings() {
         }
         let editable = ('editable' in _data.fields[col] && _data.fields[col].editable===1);
         let widthsym = ('widthsym' in _data.fields[col]) ? _data.fields[col].widthsym : null;
-        _data.table.push( {
-            ref: _data.fields[col].Code, name:_data.fields[col].Name, 
-            type:_data.fields[col].Type, format: _data.fields[col].format,
-            editable: editable, widthsym: widthsym
-        });
-    }
+				let toPush = {
+					ref: _data.fields[col].Code, name:_data.fields[col].Name, 
+					type:_data.fields[col].Type, format: _data.fields[col].format,
+					editable: editable, widthsym: widthsym
+				};
+				if(
+					('f_IsLink' in _data.fields[col] && _data.fields[col].f_IsLink == 1) ||
+					_data.fields[col].Code == 'Folder'
+				) { 
+					toPush.isLink = true;
+				}	
+				_data.table.push( toPush );
+			}
 
     // Creating editables for better data handling 
     _data.editables = [];     
@@ -269,8 +277,10 @@ export function initDataRefSettings() {
     // Creating refSettings for better data handling
     _data.refSettings = {}; 
     for( let col = 0 ; col < _data.table.length ; col++ ) {
-        let o = { column: col, type: _data.table[col].type, format: _data.table[col].format, 
-            name: _data.table[col].name, editableType: null };
+        let o = { 
+					column: col, type: _data.table[col].type, format: _data.table[col].format, 
+          name: _data.table[col].name, isLink: _data.table[col].isLink, editableType: null 
+				};
         for( let ie = 0 ; ie < _data.editables.length ; ie++ ) { 	// Is editable?
             if( _data.editables[ie].ref === _data.table[col].ref ) {
                 o.editableType = _data.editables[ie].type;
@@ -317,8 +327,8 @@ export function initLayoutCoords() {
 	_globals.tableContentSVG.setAttributeNS(null, 'width', _globals.tableContentSVGWidth ); // _globals.innerWidth * 0.1 );
 	_globals.tableContentSVGHeight = _globals.containerDivHeight - _globals.tableHeaderSVGHeight - _settings.scrollThick;
 	_globals.tableContentSVG.setAttributeNS(null, 'height', _globals.tableContentSVGHeight ); 
-    _globals.tableContentSVG.setAttribute('viewBox', `${_globals.tableViewBoxLeft} ${_globals.tableViewBoxTop} ${_globals.tableContentSVGWidth} ${_globals.tableContentSVGHeight}`);
-    //console.log(`wih = ${_globals.innerHeight}, divh=${_globals.containerDivHeight}, th=${_globals.tableHeaderSVGHeight}, tc=${_globals.tableContentSVGHeight}`);
+  _globals.tableContentSVG.setAttribute('viewBox', `${_globals.tableViewBoxLeft} ${_globals.tableViewBoxTop} ${_globals.tableContentSVGWidth} ${_globals.tableContentSVGHeight}`);
+  //console.log(`wih = ${_globals.innerHeight}, divh=${_globals.containerDivHeight}, th=${_globals.tableHeaderSVGHeight}, tc=${_globals.tableContentSVGHeight}`);
 	
 	// Vertical Splitter
 	_globals.verticalSplitterSVG.setAttributeNS(null, 'x', _globals.tableContentSVGWidth );
@@ -530,7 +540,7 @@ export function setVisibleTopAndHeightAfterExpand() {
 
 
 export function timeToScreen( timeInSeconds, absoluteMin=true ) {
-	let availableSVGWidth = _globals.ganttSVGWidth - _settings.ganttChartLeftMargin - _settings.ganttChartRightMargin;
+	let availableSVGWidth = _globals.ganttSVGWidth - _settings.ganttChartLeftMargin - _settings.ganttChartRightMargin;	
 	let min;
 	if( absoluteMin ) {
 		min = _data.visibleMin;
@@ -553,22 +563,27 @@ export function operToScreen( n ) {
 
 
 
-export function calculateHorizontalZoomByVerticalZoom( top, height ) {
+export function calculateHorizontalZoomByVerticalZoom( top, height ) 
+{
 	let th = validateTopAndHeight( top, height );
 	let newVisibleHeight = th[1]; // (_globals.notHiddenOperationsLength < height) ? _globals.notHiddenOperationsLength : height;
 	let newVisibleTop = th[0]; (top + newVisibleHeight) <= _globals.notHiddenOperationsLength ? top : (_globals.notHiddenOperationsLength - newVisibleHeight);
 	
 	let newVisibleLeft, newVisibleWidth;
 	if( _globals.notHiddenOperationsLength > height ) {		
-		let min = _data.activities[0].displayStartInSeconds;
-		let max = _data.activities[0].displayFinInSeconds;
-		for( let i = 1 ; i < newVisibleHeight ; i++ ) {
+		let min = Number.MAX_VALUE;
+		let max = Number.MIN_VALUE;
+		for( let i = 0 ; i < newVisibleHeight ; i++ ) {
 			let d = _data.activities[i];
+			if( _data.activities[i].displayStartInSeconds === null ) continue; // If no dates are set at all...
+// NEW!! (edited)
 			if( d.displayStartInSeconds < min ) {
-				min = d.displayStartInSeconds;
+				min = (d.displayStartInSeconds < _data.visibleMin ) ? _data.visibleMin : d.displayStartInSeconds;
+				// min = d.displayStartInSeconds;
 			} 
 			if( d.displayFinInSeconds > max ) {
-				max = d.displayFinInSeconds;
+				// max = d.displayFinInSeconds;
+				max = (d.displayFinInSeconds > _data.visibleMax) ? _data.visibleMax : d.displayFinInSeconds;
 			}
 
 		}
@@ -861,29 +876,50 @@ export function getFormatForTableCellAndValue( i, ref ) {
 
 	if( ref == 'Name') {
 		let hrh = _data.activities[i].parents.length;
-        r.value = updatedHTML + spacesToPadNameAccordingToHierarchy(hrh) + r.value;
-        if( typeof(_data.activities[i].Level) === 'number' ) { // If it is a phase...
-            r.fontWeight = 'bold'; // ... making it bold.
-        }
-    } else { 
-        if( _data.refSettings[ref].type === 'float' || _data.refSettings[ref].type === 'int' ) {
-            r.value = formatNumberStringForTable( r.value, _data.refSettings[ref].type, _data.refSettings[ref].format );
-        } else if( _data.refSettings[ref].type === 'datetime' ) {
-            r.value = dateIntoSpiderDateString( r.value, (_data.refSettings[ref].format === 0) );
-        }
+		r.value = updatedHTML + spacesToPadNameAccordingToHierarchy(hrh) + r.value;
+		if( typeof(_data.activities[i].Level) === 'number' ) { // If it is a phase...
+				r.fontWeight = 'bold'; // ... making it bold.
+		}
+	} else { 
+		if( _data.refSettings[ref].type === 'number' ) {
+				r.value = formatNumberStringForTable( r.value, _data.refSettings[ref].format );
+		} else if( _data.refSettings[ref].type === 'datetime' ) {
+				r.value = dateIntoSpiderDateString( r.value, (_data.refSettings[ref].format === 0) );
+		}
 		r.value = updatedHTML + r.value;
-    }    
-    if( typeof(r.value) === 'undefined' ) {
-        r.value = '';
-    } else if( r.value === null ) {
-        r.value = '';
-    }
+  }    
+	if( typeof(r.value) === 'undefined' ) {
+			r.value = '';
+	} else if( r.value === null ) {
+			r.value = '';
+	}
 
     return r;
 }
 
-export function moveColumnOfTable( from, to, initDataRefSett=true ) {
+export function moveColumnOfTable( from, to ) {
     moveElementInsideArrayOfObjects( _data.table, from, to );
-    if( initDataRefSett )
-        initDataRefSettings();
+}
+
+
+export function setClipLeftPct( clipPct, writeCookie=true ) 
+{
+	if( typeof(clipPct) === 'undefined' ) clipPct = 0;
+	if( clipPct === null ) clipPct = 0;
+	if( clipPct < 0 ) clipPct = 0;
+	if( clipPct > 99 ) clipPct = 99;
+	let newMin = _data.startMinInSeconds + (_data.finMaxInSeconds - _data.startMinInSeconds) * clipPct / 100;
+	_data.startFinSeconds = _data.finMaxInSeconds - newMin;
+	_data.visibleMin = newMin; // - (_data.finMaxInSeconds-_data.startMinInSeconds)/20.0;
+	_data.visibleMaxWidth = _data.visibleMax - _data.visibleMin;
+
+	_globals.clipLeftPct = clipPct;
+	let id = document.getElementById('toolboxClipLeftInput');
+	if( id ) id.value = clipPct;
+
+	if( writeCookie ) {
+		setCookie('clipLeftPct', clipPct );
+	}
+
+	return clipPct;
 }

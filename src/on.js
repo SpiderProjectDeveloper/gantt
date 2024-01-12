@@ -4,9 +4,11 @@ import { drawTableHeader, drawTableContent, drawTableScroll } from './drawtable.
 import { drawGantt, drawGanttHScroll, drawVerticalScroll } from './drawgantt.js';
 import { drawTimeScale } from './drawtimescale.js';
 import { drawAll, initLayoutCoords, moveColumnOfTable, setNewColumnWidth, setVerticalSplitterWidth, 
-    setVerticalScrollSVGThick, setTableScrollSVGThick, setGanttHScrollSVGThick, 
-    validateGanttLeft, validateTopAndHeight, getGanttMaxLeft,
-	expandToLevel, zoomXR, zoomYR, zoomXYR, moveXR, moveYR } from './helpers.js';
+  setVerticalScrollSVGThick, setTableScrollSVGThick, setGanttHScrollSVGThick, 
+  validateGanttLeft, validateTopAndHeight, getGanttMaxLeft,
+	expandToLevel, zoomXR, zoomYR, zoomXYR, moveXR, moveYR,
+	calculateHorizontalZoomByVerticalZoom, displayXZoomFactor, setClipLeftPct  // NEW!! 
+} from './helpers.js';
 import { setCookie, filterInput, getElementPosition, getCoordinatesOfClickOnImage } from './utils.js';
 
 // **** ON Section
@@ -66,7 +68,7 @@ export function onWindowMouseUp(e) {
 			let width = parseInt( el.getAttributeNS( null, 'width' ) ); 
 			if( e.x > x && e.x < (x + width) ) {
 				if( from != col ) {
-                    moveColumnOfTable( from, col );
+          moveColumnOfTable( from, col );
 					drawTableHeader(true);
 					drawTableContent(true);					
 					for( let cookie = 0 ; cookie < _data.table.length ; cookie++ ) { // Updating cookies according to new column sort order.
@@ -576,6 +578,47 @@ export function onZoomVerticallyBlur(id) {
 	zoomYR( (parseInt(value) - parseInt(_globals.notHiddenOperationsLength * 100.0 / _globals.visibleHeight + 0.5)) / 100.0 ); 
 }
 
+// NEW!!
+export function onClipLeftBlur(id) 
+{
+	let value = parseInt(id.value);
+	if( isNaN(value) ) {
+		value = 0;
+	} else {
+		if( value < 0 ) {
+			value = 0;
+		} else if( value > 99 ) {
+			value = 99;
+		}
+	}
+	setClipLeftPct( value );
+
+	let newZoom = calculateHorizontalZoomByVerticalZoom( 0, _globals.visibleHeight );
+	_globals.visibleTop = newZoom[0];
+	_globals.visibleHeight = newZoom[1];
+	_globals.ganttVisibleLeft = newZoom[2];
+	_globals.ganttVisibleWidth = newZoom[3];  
+
+	displayXZoomFactor();
+
+	drawAll();
+}
+
+// NEW!!
+export function onClipLeftIcon(id, e, inputId) 
+{
+	let c = getCoordinatesOfClickOnImage( id, e );
+	let value = parseInt(inputId.value);
+	if( c[2] == 0 && !isNaN(value) ) { // Upper half
+		value -= 10; 
+	} else {
+		value += 10;
+	}
+	if( value < 0 ) value = 0;
+	if( value > 99) value = 99;
+	inputId.value = value;
+	onClipLeftBlur(inputId);
+}
 
 export function onZoomVerticallyIcon(id, e, inputId) {
 	let c = getCoordinatesOfClickOnImage( id, e );

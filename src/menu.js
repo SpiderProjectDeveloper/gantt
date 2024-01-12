@@ -6,64 +6,67 @@ import { printSVG } from './print.js'
 let _dbox = null;
 let _tbox = null;
 
-export function initMenu() {
-    let el;
-    el = document.getElementById('dropdownButton');
-    el.onclick = function(e) { onDropdownButtonClick(); }
-    el = document.getElementById('toolboxButton');
-    el.onclick = function(e) { onToolboxButtonClick(); }
+export function initMenu() 
+{
+	let el;
+	el = document.getElementById('dropdownButton');
+	el.onclick = function(e) { onDropdownButtonClick(); }
+	el = document.getElementById('toolboxButton');
+	el.onclick = function(e) { onToolboxButtonClick(); }
 
-    el = document.getElementById('menuGantt');
-    el.onclick = function(e) { menuOptionChosen("g"); };
-    el = document.getElementById('menuHelp');
-    el.onclick = function(e) { menuOptionChosen("h"); };
-    el= document.getElementById('menuPrint');
-    el.onclick = function(e) { menuOptionChosen('p'); };
-    el= document.getElementById('menuUser');
-    el.onclick = function(e) { logout(); };
+	el = document.getElementById('menuGantt');
+	el.onclick = function(e) { menuOptionChosen("g"); };
+	el = document.getElementById('menuHelp');
+	el.onclick = function(e) { menuOptionChosen("h"); };
+	el= document.getElementById('menuPrint');
+	el.onclick = function(e) { menuOptionChosen('p'); };
+	el= document.getElementById('menuUser');
+	el.onclick = function(e) { logout(); };
 
-    el = document.getElementById('dropdownContent');
-    el.addEventListener('mouseover', 
-        function(e) { 
-            if( !_dbox ) { 
-                _dbox = this.getBoundingClientRect();
-            }
-        }, true);
-    el.addEventListener('mouseout', 
-        function(e) { 
-            if( _dbox ) {
-                if( e.x < _dbox.x || e.x >= _dbox.x+_dbox.width-1 || e.y < _dbox.y || e.y >= _dbox.y+_dbox.height-1 ) {
-                    hideContent('dropdownContent'); 
-                    _dbox = null; 
-                }
-            } 
-        }, false );
+	el = document.getElementById('dropdownContent');
+	/*
+	el.addEventListener('mouseover', 
+			function(e) { 
+					if( !_dbox ) { 
+							_dbox = this.getBoundingClientRect();
+					}
+			}, true);
+	el.addEventListener('mouseout', 
+			function(e) { 
+					if( _dbox ) {
+							if( e.x < _dbox.x || e.x >= _dbox.x+_dbox.width-1 || e.y < _dbox.y || e.y >= _dbox.y+_dbox.height-1 ) {
+									hideContent('dropdownContent'); 
+									_dbox = null; 
+							}
+					} 
+			}, false );
+	*/
 
-
-    el = document.getElementById('toolboxContent');
-    el.addEventListener('mouseover', 
-        function(e) { 
-            if( !_tbox ) { 
-                _tbox = this.getBoundingClientRect();
-            }
-        }, true);
-    el.addEventListener('mouseout', 
-        function(e) { 
-            if( _tbox ) {
-                if( e.x < _tbox.x || e.x >= _tbox.x+_tbox.width-1 || e.y < _tbox.y || e.y >= _tbox.y+_tbox.height-1 ) {
-                    hideContent('toolboxContent'); 
-                    _tbox = null; 
-                }
-            } 
-        }, false );
-
+	el = document.getElementById('toolboxContent');
+	/*
+	el.addEventListener('mouseover', 
+			function(e) { 
+					if( !_tbox ) { 
+							_tbox = this.getBoundingClientRect();
+					}
+			}, true);
+	el.addEventListener('mouseout', 
+			function(e) { 
+					if( _tbox ) {
+							if( e.x < _tbox.x || e.x >= _tbox.x+_tbox.width-1 || e.y < _tbox.y || e.y >= _tbox.y+_tbox.height-1 ) {
+									hideContent('toolboxContent'); 
+									_tbox = null; 
+							}
+					} 
+			}, false );
+	*/
 	el = document.getElementById('menuUserName');
-    el.innerHTML = `${_texts[_globals.lang].menuLogout} (${_globals.userName})`;
+	el.innerHTML = `${_texts[_globals.lang].menuLogout} (${_globals.userName})`;
 	//el = document.getElementById('menuUserLogout');
-    //el.innerHTML = '[&rarr;]'; // ➜ ➡ ➝ ➲ ➠ ➞ ➩ ➯ →
+		//el.innerHTML = '[&rarr;]'; // ➜ ➡ ➝ ➲ ➠ ➞ ➩ ➯ →
 	//el.onclick = logout;
-    
-    document.getElementById('helpTitle').innerText = _texts[_globals.lang].helpTitle; // Initializing help text	
+	
+	document.getElementById('helpTitle').innerText = _texts[_globals.lang].helpTitle; // Initializing help text	
 	document.getElementById('helpText').innerHTML = _texts[_globals.lang].helpText; // Initializing help text	
 	
 	document.getElementById('menuGanttTitle').innerText = _texts[_globals.lang].menuGanttTitle;
@@ -71,17 +74,23 @@ export function initMenu() {
 	document.getElementById('menuPrintTitle').innerText = _texts[_globals.lang].menuPrintTitle;
 }
 
-function onDropdownButtonClick() {
+function onDropdownButtonClick() 
+{
     hideContent('toolboxContent');
 
     let el=document.getElementById('dropdownContent'); 
-    el.style.display=(el.style.display==='block')?'none':'block';
+		let isShown = (el.style.display === 'block');
+    el.style.display = isShown ? 'none' : 'block';
+
+		document.getElementById('dropdownButton').style.color = isShown ? '#dfdfdf' : 'white';
 }
 
-function onToolboxButtonClick() {
+function onToolboxButtonClick() 
+{
     hideContent('dropdownContent');
     let el=document.getElementById('toolboxContent'); 
-    el.style.display=(el.style.display==='block')?'none':'block';       
+		let isShown = (el.style.display === 'block');
+    el.style.display = isShown ? 'none' : 'block';       
 
     let pageGantt = document.getElementById('pageGantt');
     if( pageGantt.style.display === 'none' ) {
@@ -89,6 +98,8 @@ function onToolboxButtonClick() {
             let pageHelp = document.getElementById('pageHelp');
             pageHelp.style.display = 'none';    
     }
+
+		document.getElementById('toolboxButton').style.color = isShown ? '#dfdfdf' : 'white';
 }
 
 function menuOptionChosen( option ) {    

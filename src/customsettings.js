@@ -6,6 +6,7 @@ export function readCustomSettings() {
     // Reading cookies to init interface elements.
 	for( let col = 0 ; col < _data.table.length ; col++ ) {
 		let widthValue = getCookie( _data.table[col].ref + "Width", 'int' );
+		//console.log(widthValue);
 		if( widthValue ) {
 			_data.table[col].width = widthValue;
 		}
@@ -30,13 +31,13 @@ export function readCustomSettings() {
 			for( let cookie = 0 ; cookie < _data.table.length ; cookie++ ) { // Searching for the column to be moved to 'moveTo' position...
 				let pos = getCookie( _data.table[cookie].ref+"Position", 'int' );
 				if( pos == moveTo ) {
-                    moveColumnOfTable( cookie, moveTo, false );                    
+          moveColumnOfTable( cookie, moveTo );                    
 					moveTo -= 1;
 					break;
 				}
 			}
-        }
-        initDataRefSettings();
+    }
+    //initDataRefSettings();
 	} else { // Deleting all the cookies that stores positions of columns...
 		for( let cookie = 0 ; cookie < _data.table.length ; cookie++ ) {
 			let cname = _data.table[cookie].ref+"Position";
@@ -44,7 +45,7 @@ export function readCustomSettings() {
 				deleteCookie( cname );
 			}
 		}
-    }
+  }
 
 	// Reading and validating top and height saved in cookies
 	let gvt = getCookie('ganttVisibleTop', 'float');
@@ -56,18 +57,23 @@ export function readCustomSettings() {
 		let validated = validateTopAndHeight( gvt, gvh );
 		_globals.visibleTop = validated[0];
 		_globals.visibleHeight = validated[1];
-    }
-    // Initializing horizontal zoom
-    let gvw = getCookie('ganttVisibleWidth', 'float'); 	// Reading gantt width from cookies
-    if( !gvw && _globals.secondsInPixel !== -1 ) {
-        gvw = _globals.secondsInPixel * _globals.ganttSVGWidth; 		// Calculating gantt width out of scale
-    }
-    if( gvw > 60*60 && !(gvw >_data.visibleMaxWidth) ) {
-        _globals.ganttVisibleWidth = gvw;
-    }	
+	}
+	// Initializing horizontal zoom
+	let gvw = getCookie('ganttVisibleWidth', 'float'); 	// Reading gantt width from cookies
+	if( !gvw && _globals.secondsInPixel !== -1 ) {
+			gvw = _globals.secondsInPixel * _globals.ganttSVGWidth; 		// Calculating gantt width out of scale
+	}
+	if( gvw > 60*60 && !(gvw >_data.visibleMaxWidth) ) {
+			_globals.ganttVisibleWidth = gvw;
+	}	
 
-    let gvl = getCookie('ganttVisibleLeft', 'float');
-    if( gvl ) {
-        _globals.ganttVisibleLeft = validateGanttLeft(gvl);
-    }    
+	let gvl = getCookie('ganttVisibleLeft', 'float');
+	if( gvl ) {
+			_globals.ganttVisibleLeft = validateGanttLeft(gvl);
+	}    
+
+	let clipLeftPct = getCookie('clipLeftPct', 'int');
+	if( clipLeftPct !== null && clipLeftPct >= 0 && clipLeftPct < 100 ) {
+		_globals.clipLeftPct = clipLeftPct;
+	}
 }

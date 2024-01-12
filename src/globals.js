@@ -3,7 +3,8 @@ import { _settings } from './settings.js';
 
 export var _data = null;
 
-export var _globals = { 
+export var _globals = 
+{ 
 	lang: 'en',
 	htmlStyles: null, innerWidth: window.innerWidth, innerHeight: window.innerHeight,
 
@@ -49,10 +50,12 @@ export var _globals = {
 	verticalScrollSVGSlider: null, verticalScrollSVGBkgr: null,
 	verticalScrollSVGWidth: null, verticalScrollSVGHeight: null,
 		
-    tableHeaderColumnSwapper: null, tableHeaderColumnSwapperCapturedAtX: -1, tableHeaderColumnSwapperOriginalX: -1,
+	tableHeaderColumnSwapper: null, tableHeaderColumnSwapperCapturedAtX: -1, tableHeaderColumnSwapperOriginalX: -1,
 
-    setVerticalSplitterWidthOp: -1, setVerticalScrollSVGThickOp: -1, 
-    setGanttHScrollSVGThickOp: -1, setTableScrollSVGThickOp: -1
+	setVerticalSplitterWidthOp: -1, setVerticalScrollSVGThickOp: -1, 
+	setGanttHScrollSVGThickOp: -1, setTableScrollSVGThickOp: -1,
+
+	clipLeftPct: 0
 };
 
 
@@ -90,6 +93,13 @@ export function initGlobals( appContainer, userName ) {
 	_globals.expandIcon = document.getElementById('toolboxExpandIcon');
 	_globals.expandPlusIcon = document.getElementById('toolboxExpandPlusIcon'); 
 	_globals.expandMinusIcon = document.getElementById('toolboxExpandMinusIcon'); 
+
+	// NEW!!
+	_globals.clipLeftDiv = document.getElementById('toolboxClipLeftDiv'); 
+	_globals.clipLeftIcon = document.getElementById('toolboxClipLeftIcon'); 
+	_globals.clipLeftPlusIcon = document.getElementById('toolboxClipLeftPlusIcon'); 
+	_globals.clipLeftMinusIcon = document.getElementById('toolboxClipLeftMinusIcon'); 
+	_globals.clipLeftInput = document.getElementById('toolboxClipLeftInput'); 
 
 	_globals.containerDiv = document.getElementById("containerDiv");
 	_globals.containerSVG = document.getElementById("containerSVG");
@@ -136,24 +146,33 @@ export function initGlobals( appContainer, userName ) {
 }
 
 
-export function initGlobalsWithDataParameters() {
-    if( 'parameters' in _data ) { 
+export function initGlobalsWithDataParameters() 
+{
+    if( 'parameters' in _data ) 
+		{ 
         if( typeof(_data.parameters.dateDelim) === 'string' ) 
-            _globals.dateDelim = _data.parameters.dateDelim;
+          _globals.dateDelim = _data.parameters.dateDelim;
         if( typeof(_data.parameters.timeDelim) === 'string' )
-            _globals.timeDelim = _data.parameters.timeDelim;
+          _globals.timeDelim = _data.parameters.timeDelim;
         if( typeof(_data.parameters.language) === 'string' )
-            _globals.lang = _data.parameters.language;
-        if( typeof(_data.parameters.secondsInPixel) === 'string' ) 
-            _globals.secondsInPixel = _data.parameters.secondsInPixel;
-        if( typeof(_data.parameters.expandToLevelAtStart) === 'string' ) 
-            _globals.expandToLevelAtStart = _data.parameters.expandToLevelAtStart;
-
+          _globals.lang = _data.parameters.language;
+        //if( typeof(_data.parameters.secondsInPixel) === 'string' ) 
+        //  _globals.secondsInPixel = _data.parameters.secondsInPixel;
+				if( typeof(_data.project.secondsInPixel) === 'number' ) { 
+					_globals.secondsInPixel = _data.project.secondsInPixel;
+				} else if( typeof(_data.project.secondsInPixel) === 'string' ) { 
+					_globals.secondsInPixel = parseInt(_data.project.secondsInPixel);
+				}		
+        if( typeof(_data.parameters.expandToLevelAtStart) === 'number' ) {
+          _globals.expandToLevelAtStart = _data.parameters.expandToLevelAtStart;
+				} else if( typeof(_data.parameters.expandToLevelAtStart) === 'string' ) {
+          _globals.expandToLevelAtStart = parseInt(_data.parameters.expandToLevelAtStart);
+				}
         let patternMDY = new RegExp( '([mM]+)([dD]+)([yY]+)' ); // Determining date format: DMY or MDY
         if( patternMDY.test(_data.parameters.dateFormat) ) {               
-            _globals.dateDMY = false;
+          _globals.dateDMY = false;
         } else {
-            _globals.dateDMY = true;
+          _globals.dateDMY = true;
         }
     } 
 }

@@ -13,11 +13,13 @@ import { onWindowMouseMove, onGanttWheel, onVerticalSplitterSVGMouseDown,
 	onGanttMouseDown, onGanttCapturedMouseMove, onTimeWheel, onWindowMouseUp, onZoomHorizontallyIcon, 
 	onVerticalSplitterSVGTouchStart, onVerticalSplitterSVGTouchMove, onVerticalSplitterSVGTouchEnd,
     onExpandMinusIcon, onExpandPlusIcon, onZoomHorizontallyPlusIcon, onZoomVerticallyIcon, 
-    onExpandIcon, onExpandBlur, onZoomHorizontallyBlur, onZoomVerticallyBlur } from './on.js'
+    onExpandIcon, onExpandBlur, onZoomHorizontallyBlur, onZoomVerticallyBlur,
+		onClipLeftBlur // NEW!! 
+	} from './on.js'
 import { ifSynchronizedCheck, displaySynchronizedStatus } from './synchro.js';
 import { drawAll, calculateHorizontalZoomByVerticalZoom, displayLinksStatus, zoom100, zoomReadable,
     initLayoutCoords, calcNotHiddenOperationsLength, displayXZoomFactor, displayYZoomFactor,  
-	expandToLevel, initDataRefSettings } from './helpers.js';
+	expandToLevel, initDataRefSettings, setClipLeftPct } from './helpers.js';
 import { getCookie, setCookie, deleteCookie, createDefs, csvIntoJSON, dateIntoSpiderDateString, decColorToString, 
 	copyArrayOfObjects, trimString, filterInput, digitsOnly } from './utils.js';
 import { initMenu } from './menu.js';
@@ -42,6 +44,28 @@ initGlobals(appContainer, userName);
 
 window.addEventListener( "load", onWindowLoad );
 window.addEventListener( "resize", onWindowResize );
+
+window.addEventListener( 	// To unlock data 
+	"visibilitychange", 
+	function(e) 
+	{ 
+		if( _globals.lockDataOn ) {
+			lockData( !_globals.lockDataOn, lockDataSuccessFunction, lockDataErrorFunction );
+		} 
+} );
+
+window.addEventListener(
+	'beforeunload', 
+	function (e) {
+		if( _globals.lockDataOn ) {
+			lockData( !_globals.lockDataOn, lockDataSuccessFunction, lockDataErrorFunction );
+		} 
+		e = e || window.event;
+		e.preventDefault();
+		e.returnValue = '';
+	}
+);
+
 
 if( !_globals.touchDevice ) {
 	window.addEventListener( "contextmenu", onWindowContextMenu );
@@ -78,56 +102,57 @@ function loadData() {
 			    	try{
 				        setData( JSON.parse(this.responseText) ); // TO UNCOMMENT!!!!
 			    	} catch(e) {
-			    		console.log('Error: ' + e.name + ":" + e.message + "\n" + e.stack + "\n" + e.cause);
+			    		//console.log('Error: ' + e.name + ":" + e.message + "\n" + e.stack + "\n" + e.cause);
 			    		errorParsingData = true;
 			    	}
 			    	if( errorParsingData ) { // To ensure data are parsed ok... // alert(this.responseText);
-						displayMessageBox( _texts[_globals.lang].errorParsingData ); 
-						return;
+							displayMessageBox( _texts[_globals.lang].errorParsingData ); 
+							return;
 			    	}
-					// if( 'ontouchstart' in document.documentElement ) { // To find out is it a touch device or not...
-					//	_globals.touchDevice = true;
-					// }
+						// if( 'ontouchstart' in document.documentElement ) { // To find out is it a touch device or not...
+						//	_globals.touchDevice = true;
+						// }
 
-                    initGlobalsWithDataParameters();
+            initGlobalsWithDataParameters();
 
 			    	if( !('activities' in _data) || _data.activities.length == 0 ) {
-						displayMessageBox( _texts[_globals.lang].errorParsingData ); 
-						return;
+							displayMessageBox( _texts[_globals.lang].errorParsingData ); 
+							return;
 			    	}
 
-			        var xmlhttpUserData = new XMLHttpRequest();
-					xmlhttpUserData.onreadystatechange = function() {
-			    		if (this.readyState == 4 ) {
-							let userData = [];
-			    			if( this.status == 200 ) {		    			
-								userData = csvIntoJSON(this.responseText);
-				        	} 
-						    hideMessageBox();	
-							if( initData() == 0 ) {
+		        var xmlhttpUserData = new XMLHttpRequest();
+						xmlhttpUserData.onreadystatechange = function() {
+			    		if (this.readyState == 4 ) 
+							{
+								let userData = [];
+								if( this.status == 200 ) {		    			
+									userData = csvIntoJSON(this.responseText);
+								} 
+								hideMessageBox();	
+								if( initData() == 0 ) {
 					    		if( !('editables' in _data) || _data.editables.length == 0 ) {
 					    			_data.noEditables = true;
 								} else {
-						    		_data.noEditables = false;
+						    	_data.noEditables = false;
 									if( userData.length > 0 ) { 				
-					        			setUserData( userData );
-					        		}
-			        				createEditBoxInputs();
+					        	setUserData( userData );
+					        }
+			        		createEditBoxInputs();
 								}		
 								displayData();
 								if( !_data.noEditables ) {
-			        				ifSynchronizedCheck();
+			        		ifSynchronizedCheck();
 								}
 							}
-			        	}
-			        }; 
-			        xmlhttpUserData.open("GET", _settings.urlUserData, true);
-			        xmlhttpUserData.setRequestHeader("Cache-Control", "no-cache");
+			      }
+			    }; 
+					xmlhttpUserData.open("GET", _settings.urlUserData, true);
+					xmlhttpUserData.setRequestHeader("Cache-Control", "no-cache");
 					xmlhttpUserData.send();
 				} else {
 					displayMessageBox( _texts[_globals.lang].errorLoadingData ); 
 				}
-		    }
+		  }
 		};
 		xmlhttp.open("GET", _settings.urlData, true);
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
@@ -158,7 +183,7 @@ function initData() {
 		_globals.redrawAllMode = true;
 	}
 
-    initDataRefSettings();
+  initDataRefSettings();
 
 	// Retrieving dates of operations, calculating min. and max. dates.
 	_data.startMinInSeconds = -1;
@@ -236,7 +261,15 @@ function initData() {
 			d.displayStartInSeconds = d.FactStartInSeconds; 
 			d.displayFinInSeconds = d.FactFinInSeconds;
 			d.displayRestartInSeconds = null; 
-		} else {
+		} else if( 
+			(d.FactStartInSeconds === -1 && d.AsapStartInSeconds === -1) || 
+			(d.FactFinInSeconds === -1 && d.AsapFinInSeconds === -1) 
+		) {
+			d.displayStartInSeconds = null; 
+			d.displayFinInSeconds = null;
+			d.displayRestartInSeconds = null;
+		}		
+		else {
 			if( !d.FactStart ) { // Has not been started yet
 				d.status = 0; // not started 
 				d.displayStartInSeconds = d.AsapStartInSeconds; 
@@ -356,7 +389,9 @@ function initData() {
 	_data.initialTable = []; // Saving table settings loaded from a local version of Spider Project
 	copyArrayOfObjects( _data.table, _data.initialTable );
 
-    readCustomSettings();
+  readCustomSettings();
+
+	setClipLeftPct( _globals.clipLeftPct, false );
 
 	calcNotHiddenOperationsLength();
 
@@ -410,8 +445,8 @@ function initParents( iOperation ) {
 }
 
 
-function initLayout() {
-	
+function initLayout() 
+{	
 	initLayoutCoords();
 
 	_globals.containerDiv.addEventListener( 'selectstart', function(e) { e.preventDefault(); return false; } );
@@ -472,11 +507,20 @@ function initLayout() {
 	    _globals.zoomVerticallyPlusIcon.setAttribute( 'style', 'display:none' );
 
 		_globals.expandIcon.addEventListener('mousedown', function(e) { onExpandIcon(this, e); } );
-	    _globals.expandMinusIcon.setAttribute( 'style', 'display:none' );
-	    _globals.expandPlusIcon.setAttribute( 'style', 'display:none' );
+		_globals.expandMinusIcon.setAttribute( 'style', 'display:none' );
+		_globals.expandPlusIcon.setAttribute( 'style', 'display:none' );
 		_globals.expandInput.addEventListener('input', function(e) { filterInput(this,'([^0-9]+)',1,100,1); } );
 		_globals.expandInput.addEventListener('blur', function(e) { onExpandBlur(); } );
-	} else {
+
+// NEW!!
+		_globals.clipLeftInput.addEventListener('input', function() { filterInput(this); } );
+		_globals.clipLeftInput.addEventListener('blur', function(e) { onClipLeftBlur(this); } );
+		_globals.clipLeftInput.addEventListener('keyup', function(e) { if(e.keyCode === 13) onClipLeftBlur(this); });
+		_globals.clipLeftMinusIcon.setAttribute( 'style', 'display:none' );
+		_globals.clipLeftPlusIcon.setAttribute( 'style', 'display:none' );
+	} 
+	else
+	{
 		_globals.zoomHorizontallyInput.setAttribute( 'style', 'display:none' );
 		_globals.zoomVerticallyInput.setAttribute( 'style', 'display:none' );
 		_globals.zoomHorizontallyIcon.setAttribute( 'style', 'display:none' );
@@ -489,6 +533,10 @@ function initLayout() {
 			function(e) { onZoomVerticallyMinusIcon(this, e, _globals.zoomVerticallyInput); } );
 		_globals.zoomVerticallyPlusIcon.addEventListener('mousedown', 
 			function(e) { onZoomVerticallyPlusIcon(this, e, _globals.zoomVerticallyInput); } );
+
+		// NEW!!
+		_globals.clipLeftIcon.setAttribute( 'style', 'display:none' );
+		_globals.clipLeftInput.setAttribute( 'style', 'display:none' );	
 
 		_globals.expandIcon.setAttribute( 'style', 'display:none' );
 		_globals.expandMinusIcon.addEventListener('mousedown', 
@@ -505,9 +553,10 @@ function initLayout() {
 }
 
 
-function displayHeaderAndFooterInfo() {
-	if( typeof(_data) === 'undefined' || !('project' in _data) )
-		return;
+function displayHeaderAndFooterInfo() 
+{
+	if( typeof(_data) === 'undefined' || _data === null || !('project' in _data) ) return;
+	
 	document.title = _data.project.Name;
 	let projectName = document.getElementById('projectName');
 	projectName.innerText = _data.project.Name + " (" + _data.project.Code + ")";
@@ -554,6 +603,13 @@ function displayHeaderAndFooterInfo() {
 	document.getElementById('toolboxExpandPlusIcon').setAttribute('src',_icons.expandPlus);
 	document.getElementById('toolboxExpandMinusIcon').setAttribute('src',_icons.expandMinus);
 
+	// NEW!!
+	_globals.clipLeftDiv.title = _texts[_globals.lang].clipLeftTitle;
+	_globals.clipLeftIcon.setAttribute('src',_icons.clipLeft);
+	_globals.clipLeftPlusIcon.setAttribute('src',_icons.zoomHorizontallyPlus);
+	_globals.clipLeftMinusIcon.setAttribute('src',_icons.zoomHorizontallyMinus);
+
+
 	document.getElementById('toolboxNewProjectDiv').title = _texts[_globals.lang].titleNewProject;	
 	document.getElementById('toolboxNewProjectDiv').onclick = newProject;	
 	document.getElementById('toolboxNewProjectIcon').setAttribute('src',_icons.newProject);
@@ -575,7 +631,8 @@ function displayHeaderAndFooterInfo() {
 }
 
 
-function calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight, brackets=0 ) {
+function calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight, brackets=0 ) 
+{
 	let phaseBracketHeight = rectHeight * _settings.ganttRectBracketRelHeight;
 	let thick = (rectWidth+rectWidth > _settings.ganttRectBracketThick) ? _settings.ganttRectBracketThick : 1;
 	let rectEnd = rectStart + rectWidth;
@@ -625,7 +682,8 @@ function setUserData( userData ) { // Sets user data read from a file
 }
 
 
-function reassignBoundaryValue( knownBoundary, newBoundary, upperBoundary ) {
+function reassignBoundaryValue( knownBoundary, newBoundary, upperBoundary ) 
+{
 	if( knownBoundary == -1 ) {
 		return newBoundary;
 	} 
@@ -645,7 +703,8 @@ function reassignBoundaryValue( knownBoundary, newBoundary, upperBoundary ) {
 }
 
 
-function addOnMouseWheel(elem, handler) {
+function addOnMouseWheel(elem, handler) 
+{
 	if (elem.addEventListener) {
 		if ('onwheel' in document) {           // IE9+, FF17+
 			elem.addEventListener("wheel", handler);
@@ -659,7 +718,8 @@ function addOnMouseWheel(elem, handler) {
 	}
 }
 
-function newProject() {
+function newProject() 
+{
 	let cookies = document.cookie.split(";");
     for (let i = 0; i < cookies.length; i++) {
     	let namevalue = cookies[i].split('=');
@@ -679,8 +739,8 @@ function newProject() {
 }
 
 
-function resetCookies() {
-
+function resetCookies() 
+{
 	deleteCookie('ganttVisibleTop');
 	deleteCookie('ganttVisibleHeight');
 
@@ -697,7 +757,8 @@ function resetCookies() {
 }
 
 
-function restoreExportedSettings(redraw=true) {
+function restoreExportedSettings(redraw=true) 
+{
 	_globals.visibleTop = 0;
 	_globals.visibleHeight = _settings.readableNumberOfOperations;
 	setCookie('ganttVisibleTop', 0);
@@ -740,7 +801,10 @@ function onWindowLoad() {
 	loadData();
 }
 
-function onWindowResize(e) { 
+function onWindowResize(e) 
+{ 
+	_globals.innerWidth = window.innerWidth;
+	_globals.innerHeight = window.innerHeight;
 	initLayoutCoords(); 
 	displayData(); 
 }

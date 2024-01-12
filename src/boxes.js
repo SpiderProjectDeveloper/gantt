@@ -361,18 +361,7 @@ function validateEditField( input, type, allowedEmpty=true ) {
     		r.message = _texts[_globals.lang].datetimeError;
 			return r;
 		}
-	} else if( type === 'int' ) {
-		let pattern = new RegExp("[^ 0-9]");
-    	let illegalCharacters = pattern.test(value);
-    	if( illegalCharacters ) { 
-    		r.message = _texts[_globals.lang].intError;    		
-    		return r;
-    	}		
-    	if( isNaN( parseInt(value) ) ) {
-    		r.message = _texts[_globals.lang].intError;    		
-    		return r;
-    	}
-	} else if( type === 'float' ) {
+	} else if( type === 'number' ) {
 		let pattern = new RegExp("[^ \\.0-9]");
     	let illegalCharacters = pattern.test(value);
     	if( illegalCharacters ) { 
