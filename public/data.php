@@ -12,7 +12,7 @@
     "Code" : "RB181_centro_LTVP",
     "Version" : 1,
     "Name" : "RB181_centro_LTVP",
-    "Notes" : "RB181_centro_LTVP\n\nPrezado Sr. Joaquim Guilherme Segura,\n\n	Apresentamos a seguir nossa proposta para atendimento a vossa solicitação, após entendimentos maiores por meios de mensagens instantâneas, contatos telefônicos e visita breve pontual em 30-12-2022, consistindo na vistoria e emissão de um laudo de autovistoria predial conforme legislação em vigor preconizada pela lei estadual 6400 e lei municipal complementar 126 e suas resoluções correlatas. Ciente de que o atual laudo expira em 12/01/2023, e sendo seu pré-dio constituído por 38 andares, 8 elevadores, 2 escadas rolantes (manutenção da Otis Elevadores), uma subestação de entrada no térreo e outra no 22º andar, com funcionários dedicados para ma-nutenção.",
+    "Notes" : "Notes",
     "CurTime" : 1674201600,
     "WexbimPath" : "",
     "IFCPath" : "",

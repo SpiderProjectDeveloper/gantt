@@ -40,7 +40,7 @@ exit(0);
 
 function logout() {
     header("HTTP/1.0 401 Unauthorized");
-    echo "<script>window.location.replace('http://www.spiderproject.com/');</script>";
+    echo "<script>window.location.replace('http://www.spiderproject.pro/');</script>";
 }
 
 function manage_lock( $locked ) {
